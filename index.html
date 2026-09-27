@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Finance</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;900&family=Geist+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+<style>
+:root {
+  --hue: 35;
+  --hero-bg: oklch(64% 0.22 var(--hue)); /* Orange accent */
+  --hero-ink: oklch(16% 0.06 var(--hue)); /* Dark text */
+  --hero-ink-soft: oklch(35% 0.06 var(--hue)); /* Grey text */
+  --hero-tint: oklch(98% 0.01 var(--hue)); /* Off-white background */
+  
+  --light-bg: var(--hero-tint);
+  --light-bg-elev: oklch(100% 0 var(--hue)); /* Pure white cards */
+  --light-rule: oklch(90% 0.02 var(--hue)); /* Borders */
+
+  --dark-bg: oklch(14% 0.03 var(--hue));
+  --dark-bg-elev: oklch(18% 0.04 var(--hue));
+  --dark-ink: oklch(96% 0.02 var(--hue));
+  --dark-ink-soft: oklch(72% 0.04 var(--hue));
+  --dark-rule: oklch(26% 0.03 var(--hue));
+
+  --radius-sm: 6px;
+  --radius-md: 12px;
+  --radius-lg: 18px;
+
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; background: var(--light-bg); color: var(--hero-ink); font-family: "Geist", sans-serif; }
+input, select, button { font-family: inherit; }
+
+.app-container {
+  max-width: 600px;
+  margin: 0 auto;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.topbar {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: 24px;
+  font-family: "Geist Mono", monospace;
+  font-size: 13px;
+  border-bottom: 1px solid var(--light-rule);
+}
+.mark { font-weight: 700; color: var(--hero-bg); }
+
+.tabs {
+  display: flex;
+  padding: 16px 24px;
+  gap: 16px;
+  border-bottom: 1px solid var(--light-rule);
+}
+.tab {
+  background: none; border: none; color: var(--hero-ink-soft); font-family: "Geist Mono", monospace; font-size: 14px; cursor: pointer; padding: 8px 12px; border-radius: var(--radius-sm); transition: all 0.2s;
+}
+.tab:hover { color: var(--hero-ink); }
+.tab.active { background: var(--hero-ink); color: var(--light-bg-elev); }
+
+.content { padding: 24px; }
+.section { display: none; }
+.section.active { display: block; }
+
+.summary {
+  display: flex; gap: 16px; margin-bottom: 32px;
+}
+.summary-card {
+  flex: 1; background: var(--light-bg-elev); padding: 20px; border-radius: var(--radius-md); border: 1px solid var(--light-rule); box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+}
+.summary-label { font-family: "Geist Mono", monospace; font-size: 12px; color: var(--hero-ink-soft); margin-bottom: 8px; }
+.summary-value { font-size: 24px; font-weight: 700; color: var(--hero-bg); }
+
+.form-box {
+  background: var(--light-bg-elev); padding: 20px; border-radius: var(--radius-md); border: 1px solid var(--light-rule); margin-bottom: 32px; box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+}
+.form-row { display: flex; gap: 12px; margin-bottom: 12px; }
+.form-row:last-child { margin-bottom: 0; }
+.input {
+  flex: 1; background: var(--light-bg); color: var(--hero-ink); border: 1px solid var(--light-rule); padding: 10px 12px; border-radius: var(--radius-sm); font-size: 15px; width: 100%;
+}
+.input:focus { outline: none; border-color: var(--hero-bg); }
+.btn-submit {
+  background: var(--hero-bg); color: var(--light-bg-elev); border: none; padding: 10px 20px; border-radius: var(--radius-sm); font-weight: 600; font-size: 15px; cursor: pointer; font-family: "Geist Mono", monospace;
+}
+.btn-submit:hover { opacity: 0.9; }
+
+.list-header { font-family: "Geist Mono", monospace; font-size: 13px; color: var(--hero-ink-soft); margin-bottom: 16px; border-bottom: 1px solid var(--light-rule); padding-bottom: 8px; }
+.list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 12px; }
+.item {
+  display: flex; justify-content: space-between; align-items: flex-start; padding: 16px; background: var(--dark-bg-elev); border-radius: var(--radius-md); border: 1px solid var(--dark-rule); transition: opacity 0.2s; box-shadow: 0 4px 12px rgba(0,0,0,0.08); color: var(--dark-ink);
+}
+.item.closed { opacity: 0.5; background: var(--dark-bg); }
+.item-title { font-weight: 600; font-size: 16px; margin-bottom: 4px; color: var(--dark-ink); }
+.item-meta { font-family: "Geist Mono", monospace; font-size: 12px; color: var(--dark-ink-soft); }
+.item-amount { font-weight: 700; font-size: 18px; color: var(--dark-ink); text-align: right; margin-bottom: 8px; font-family: "Geist Mono", monospace;}
+.item.closed .item-amount { text-decoration: line-through; }
+.item-actions { display: flex; gap: 12px; justify-content: flex-end; }
+.action-btn { background: none; border: none; color: var(--dark-ink-soft); font-family: "Geist Mono", monospace; font-size: 12px; cursor: pointer; padding: 0; text-transform: lowercase;}
+.action-btn:hover { color: var(--hero-bg); }
+
+.empty-state { text-align: center; color: var(--hero-ink-soft); font-family: "Geist Mono", monospace; padding: 40px 0; font-size: 13px; }
+</style>
+</head>
+<body>
+<div class="app-container">
+  <header class="topbar">
+    <span class="mark">/finance</span>
+    <nav style="color: var(--hero-ink-soft);">built like art</nav>
+  </header>
+
+  <div class="tabs">
+    <button id="tab-debts" class="tab active">debts.list()</button>
+    <button id="tab-deposits" class="tab">deposits.list()</button>
+  </div>
+
+  <main class="content">
+    <div id="debts-section" class="section active">
+      <div class="summary">
+        <div class="summary-card">
+          <div class="summary-label">inbound</div>
+          <div class="summary-value" id="debts-in">0 ₽</div>
+        </div>
+        <div class="summary-card" style="border-color: var(--hero-ink-soft);">
+          <div class="summary-label">outbound</div>
+          <div class="summary-value" id="debts-out" style="color: var(--hero-ink-soft);">0 ₽</div>
+        </div>
+      </div>
+
+      <form id="form-debt" class="form-box">
+        <div class="form-row">
+          <input type="text" id="d-name" class="input" placeholder="who" required>
+          <select id="d-type" class="input" style="flex: 0.5;">
+            <option value="in">they owe</option>
+            <option value="out">i owe</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <input type="number" id="d-amount" class="input" placeholder="0.00" step="0.01" required>
+          <input type="date" id="d-date" class="input" required>
+        </div>
+        <div class="form-row">
+          <button type="submit" class="btn-submit" style="width: 100%;">add</button>
+        </div>
+      </form>
+
+      <div class="list-header">active records</div>
+      <ul id="debts-list" class="list"></ul>
+    </div>
+
+    <div id="deposits-section" class="section">
+      <div class="summary">
+        <div class="summary-card">
+          <div class="summary-label">total_locked</div>
+          <div class="summary-value" id="deposits-total">0 ₽</div>
+        </div>
+      </div>
+
+      <form id="form-deposit" class="form-box">
+        <div class="form-row">
+          <input type="text" id="dep-bank" class="input" placeholder="asset / bank" required>
+          <input type="number" id="dep-amount" class="input" placeholder="0.00" step="0.01" style="flex: 0.5;" required>
+        </div>
+        <div class="form-row">
+          <input type="date" id="dep-open" class="input" title="open" required>
+          <input type="date" id="dep-close" class="input" title="close" required>
+        </div>
+        <div class="form-row">
+          <button type="submit" class="btn-submit" style="width: 100%;">lock</button>
+        </div>
+      </form>
+
+      <div class="list-header">active assets</div>
+      <ul id="deposits-list" class="list"></ul>
+    </div>
+  </main>
+</div>
+<script src="app.js"></script>
+</body>
+</html>
