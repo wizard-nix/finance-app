@@ -2,8 +2,10 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"/>
 <title>Finance</title>
+<link rel="icon" type="image/jpeg" href="icon.jpg">
+    <link rel="apple-touch-icon" href="icon.jpg">
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;900&family=Geist+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
@@ -153,7 +155,38 @@ input, select, button { font-family: inherit; }
         </div>
       </form>
 
-      <div class="list-header">active records</div>
+      <!-- Debtor Filter -->
+      <div class="filter-box" style="margin-bottom: 24px;">
+        <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+          <input type="text" id="debt-filter" class="input" placeholder="filter.by_debtor('name')..." autocomplete="off" style="font-family: 'Geist Mono', monospace; font-size: 13px;">
+          <button id="debt-filter-clear" type="button" class="btn-submit" style="display: none; padding: 8px 14px; font-size: 13px; background: var(--dark-bg-elev); color: var(--dark-ink);">[clear]</button>
+        </div>
+        <div id="debtor-chips" style="display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; font-family: 'Geist Mono', monospace;"></div>
+      </div>
+
+      <!-- Debtor Summary Card when filtered -->
+      <div id="debtor-summary" style="display: none; background: var(--dark-bg-elev); border: 1px solid var(--hero-bg); border-radius: var(--radius-md); padding: 18px; margin-bottom: 24px; color: var(--dark-ink); box-shadow: 0 4px 16px rgba(0,0,0,0.12);">
+        <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 14px; font-family: 'Geist Mono', monospace;">
+          <span style="color: var(--hero-bg); font-weight: 700; font-size: 13px;">// debtor_summary</span>
+          <span id="ds-name" style="background: var(--dark-bg); color: var(--dark-ink); padding: 2px 8px; border-radius: var(--radius-sm); font-size: 12px; border: 1px solid var(--dark-rule);"></span>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-family: 'Geist Mono', monospace; margin-bottom: 14px;">
+          <div style="background: var(--dark-bg); padding: 12px; border-radius: var(--radius-sm); border: 1px solid var(--dark-rule);">
+            <div style="font-size: 11px; color: var(--dark-ink-soft); margin-bottom: 4px;">inbound (they owe)</div>
+            <div id="ds-in" style="font-size: 18px; font-weight: 700; color: var(--hero-bg);">0 ₽</div>
+          </div>
+          <div style="background: var(--dark-bg); padding: 12px; border-radius: var(--radius-sm); border: 1px solid var(--dark-rule);">
+            <div style="font-size: 11px; color: var(--dark-ink-soft); margin-bottom: 4px;">outbound (i owe)</div>
+            <div id="ds-out" style="font-size: 18px; font-weight: 700; color: var(--dark-ink);">0 ₽</div>
+          </div>
+        </div>
+        <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 10px; border-top: 1px solid var(--dark-rule); font-family: 'Geist Mono', monospace; font-size: 13px;">
+          <span style="color: var(--dark-ink-soft);">net_balance:</span>
+          <span id="ds-balance" style="font-weight: 700; font-size: 16px; color: var(--dark-ink);">0 ₽</span>
+        </div>
+      </div>
+
+      <div class="list-header" id="debts-list-header">active records</div>
       <ul id="debts-list" class="list"></ul>
     </div>
 

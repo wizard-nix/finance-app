@@ -5,6 +5,7 @@ class FinanceAppBrag {
     constructor() {
         this.debts = this.loadData(DEBTS_KEY);
         this.deposits = this.loadData(DEPOSITS_KEY);
+        this.debtFilter = '';
 
         this.initTabs();
         this.initDebts();
@@ -63,11 +64,51 @@ class FinanceAppBrag {
     }
 
     initDebts() {
+        const filterInput = document.getElementById('debt-filter');
+        const clearBtn = document.getElementById('debt-filter-clear');
+
+        filterInput.addEventListener('input', (e) => {
+            this.debtFilter = e.target.value;
+            if (this.debtFilter.trim()) {
+                clearBtn.style.display = 'block';
+            } else {
+                clearBtn.style.display = 'none';
+            }
+            this.renderDebts();
+        });
+
+        clearBtn.addEventListener('click', () => {
+            filterInput.value = '';
+            this.debtFilter = '';
+            clearBtn.style.display = 'none';
+            filterInput.focus();
+            this.renderDebts();
+        });
+
         this.renderDebts();
         document.getElementById('form-debt').addEventListener('submit', (e) => {
             e.preventDefault();
             this.addDebt();
         });
+    }
+
+    setDebtorFilter(name) {
+        const filterInput = document.getElementById('debt-filter');
+        const clearBtn = document.getElementById('debt-filter-clear');
+        if (this.debtFilter.trim().toLowerCase() === name.trim().toLowerCase()) {
+            this.debtFilter = '';
+            filterInput.value = '';
+            clearBtn.style.display = 'none';
+        } else {
+            this.debtFilter = name;
+            filterInput.value = name;
+            if (name.trim()) {
+                clearBtn.style.display = 'block';
+            } else {
+                clearBtn.style.display = 'none';
+            }
+        }
+        this.renderDebts();
     }
 
     addDebt() {
@@ -116,29 +157,119 @@ class FinanceAppBrag {
         const list = document.getElementById('debts-list');
         list.innerHTML = '';
 
-        let inTotal = 0;
-        let outTotal = 0;
+        const chipsContainer = document.getElementById('debtor-chips');
+        const debtorSummary = document.getElementById('debtor-summary');
+        const dsName = document.getElementById('ds-name');
+        const dsIn = document.getElementById('ds-in');
+        const dsOut = document.getElementById('ds-out');
+        const dsBalance = document.getElementById('ds-balance');
+        const listHeader = document.getElementById('debts-list-header');
 
-        const sorted = [...this.debts].sort((a, b) => {
+        // Render chips for unique debtors
+        const uniqueDebtors = [...new Set(this.debts.map(d => d.name.trim()).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'ru'));
+        
+        if (uniqueDebtors.length > 0) {
+            chipsContainer.style.display = 'flex';
+            const isAllActive = !this.debtFilter.trim();
+            let chipsHtml = `
+                <button type="button" onclick="app.setDebtorFilter('')" 
+                    style="border: 1px solid var(--light-rule); background: ${isAllActive ? 'var(--hero-ink)' : 'var(--light-bg-elev)'}; color: ${isAllActive ? 'var(--light-bg-elev)' : 'var(--hero-ink-soft)'}; padding: 4px 10px; border-radius: var(--radius-sm); cursor: pointer; white-space: nowrap; font-family: inherit;">
+                    all (${this.debts.length})
+                </button>
+            `;
+            uniqueDebtors.forEach(name => {
+                const isSelected = this.debtFilter.trim().toLowerCase() === name.toLowerCase();
+                const safeName = name.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                const count = this.debts.filter(d => d.name.trim().toLowerCase() === name.toLowerCase()).length;
+                chipsHtml += `
+                    <button type="button" onclick="app.setDebtorFilter('${safeName}')" 
+                        style="border: 1px solid var(--light-rule); background: ${isSelected ? 'var(--hero-ink)' : 'var(--light-bg-elev)'}; color: ${isSelected ? 'var(--light-bg-elev)' : 'var(--hero-ink-soft)'}; padding: 4px 10px; border-radius: var(--radius-sm); cursor: pointer; white-space: nowrap; font-family: inherit;">
+                        ${name} (${count})
+                    </button>
+                `;
+            });
+            chipsContainer.innerHTML = chipsHtml;
+        } else {
+            chipsContainer.innerHTML = '';
+            chipsContainer.style.display = 'none';
+        }
+
+        const query = this.debtFilter.trim().toLowerCase();
+        const isFiltered = query.length > 0;
+
+        // Overall totals
+        let totalIn = 0;
+        let totalOut = 0;
+        this.debts.forEach(debt => {
+            if (debt.status === 'active') {
+                if (debt.type === 'they_owe') totalIn += debt.amount;
+                else totalOut += debt.amount;
+            }
+        });
+
+        // Filtered records
+        const filtered = isFiltered
+            ? this.debts.filter(d => d.name.toLowerCase().includes(query))
+            : this.debts;
+
+        let filteredIn = 0;
+        let filteredOut = 0;
+
+        filtered.forEach(debt => {
+            if (debt.status === 'active') {
+                if (debt.type === 'they_owe') filteredIn += debt.amount;
+                else filteredOut += debt.amount;
+            }
+        });
+
+        const netBalance = filteredIn - filteredOut;
+
+        if (isFiltered) {
+            debtorSummary.style.display = 'block';
+            listHeader.textContent = `active records (matched: ${filtered.length})`;
+
+            document.getElementById('debts-in').textContent = this.formatCurrency(filteredIn);
+            document.getElementById('debts-out').textContent = this.formatCurrency(filteredOut);
+
+            const matchedDebtors = [...new Set(filtered.map(d => d.name.trim()))];
+            dsName.textContent = matchedDebtors.length === 1 ? matchedDebtors[0] : `query: "${this.debtFilter.trim()}"`;
+            dsIn.textContent = this.formatCurrency(filteredIn);
+            dsOut.textContent = this.formatCurrency(filteredOut);
+            
+            if (netBalance > 0) {
+                dsBalance.textContent = `+${this.formatCurrency(netBalance)} (inbound)`;
+                dsBalance.style.color = 'var(--hero-bg)';
+            } else if (netBalance < 0) {
+                dsBalance.textContent = `-${this.formatCurrency(Math.abs(netBalance))} (outbound)`;
+                dsBalance.style.color = 'var(--hero-ink-soft)';
+            } else {
+                dsBalance.textContent = '0 ₽';
+                dsBalance.style.color = 'var(--dark-ink)';
+            }
+        } else {
+            debtorSummary.style.display = 'none';
+            listHeader.textContent = 'active records';
+
+            document.getElementById('debts-in').textContent = this.formatCurrency(totalIn);
+            document.getElementById('debts-out').textContent = this.formatCurrency(totalOut);
+        }
+
+        const sorted = [...filtered].sort((a, b) => {
             if (a.status !== b.status) return a.status === 'active' ? -1 : 1;
             return new Date(b.date) - new Date(a.date);
         });
 
         sorted.forEach(debt => {
-            if (debt.status === 'active') {
-                if (debt.type === 'they_owe') inTotal += debt.amount;
-                else outTotal += debt.amount;
-            }
-
             const isPaid = debt.status === 'paid';
             const isIn = debt.type === 'they_owe';
+            const safeName = debt.name.replace(/'/g, "\\'").replace(/"/g, '&quot;');
             
             const li = document.createElement('li');
             li.className = `item ${isPaid ? 'closed' : ''}`;
             
             li.innerHTML = `
                 <div>
-                    <div class="item-title">${debt.name}</div>
+                    <div class="item-title" style="cursor: pointer; text-decoration: underline;" onclick="app.setDebtorFilter('${safeName}')" title="filter by ${safeName}">${debt.name}</div>
                     <div class="item-meta">${this.formatDate(debt.date)} · ${isIn ? 'they owe' : 'i owe'}</div>
                 </div>
                 <div>
@@ -152,11 +283,16 @@ class FinanceAppBrag {
             list.appendChild(li);
         });
 
-        document.getElementById('debts-in').textContent = this.formatCurrency(inTotal);
-        document.getElementById('debts-out').textContent = this.formatCurrency(outTotal);
-        
         if (sorted.length === 0) {
-            list.innerHTML = `<div class="empty-state">No records found.</div>`;
+            if (isFiltered) {
+                list.innerHTML = `
+                    <div class="empty-state">
+                        <div>no records matching "${this.debtFilter}"</div>
+                        <button onclick="app.setDebtorFilter('')" class="action-btn" style="margin-top: 12px; color: var(--hero-bg);">[ reset filter ]</button>
+                    </div>`;
+            } else {
+                list.innerHTML = `<div class="empty-state">No records found.</div>`;
+            }
         }
     }
 
