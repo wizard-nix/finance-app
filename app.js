@@ -10,6 +10,7 @@ class FinanceAppBrag {
         this.initTabs();
         this.initDebts();
         this.initDeposits();
+        this.initBackup();
         
         const today = new Date().toISOString().split('T')[0];
         document.getElementById('d-date').value = today;
@@ -389,6 +390,73 @@ class FinanceAppBrag {
             list.innerHTML = `<div class="empty-state">No assets found.</div>`;
         }
     }
+
+    initBackup() {
+        const exportBtn = document.getElementById('btn-export');
+        const importInput = document.getElementById('input-import');
+
+        if (exportBtn) {
+            exportBtn.addEventListener('click', () => this.exportBackup());
+        }
+        if (importInput) {
+            importInput.addEventListener('change', (e) => this.importBackup(e));
+        }
+    }
+
+    exportBackup() {
+        const backupData = {
+            debts: this.debts,
+            deposits: this.deposits,
+            exportedAt: new Date().toISOString()
+        };
+        const blob = new Blob([JSON.stringify(backupData, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        const dateStr = new Date().toISOString().split('T')[0];
+        a.href = url;
+        a.download = `finance_backup_${dateStr}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
+
+    importBackup(event) {
+        const file = event.target.files && event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            try {
+                const parsed = JSON.parse(e.target.result);
+                if (Array.isArray(parsed.debts) && Array.isArray(parsed.deposits)) {
+                    if (confirm(`Найдено записей: долгов ${parsed.debts.length}, депозитов ${parsed.deposits.length}. Заменить текущие данные?`)) {
+                        this.debts = parsed.debts;
+                        this.deposits = parsed.deposits;
+                        this.saveData(DEBTS_KEY, this.debts);
+                        this.saveData(DEPOSITS_KEY, this.deposits);
+                        this.renderDebts();
+                        this.renderDeposits();
+                    }
+                } else {
+                    alert('Ошибка: неверный формат файла бэкапа.');
+                }
+            } catch (err) {
+                alert('Не удалось прочитать JSON: ' + err.message);
+            }
+        };
+        reader.readAsText(file);
+        event.target.value = '';
+    }
+}
+
+// Register Service Worker for PWA
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').catch((err) => {
+            console.error('ServiceWorker registration failed:', err);
+        });
+    });
 }
 
 document.addEventListener('DOMContentLoaded', () => {

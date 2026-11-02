@@ -4,8 +4,15 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"/>
 <title>Finance</title>
+<meta name="theme-color" content="#fdfaf6" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<meta name="apple-mobile-web-app-title" content="Finance" />
+<link rel="manifest" href="manifest.json" />
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <link rel="icon" type="image/jpeg" href="icon.jpg">
-    <link rel="apple-touch-icon" href="icon.jpg">
+<link rel="apple-touch-icon" href="icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;900&family=Geist+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
@@ -111,13 +118,19 @@ input, select, button { font-family: inherit; }
 .action-btn:hover { color: var(--hero-bg); }
 
 .empty-state { text-align: center; color: var(--hero-ink-soft); font-family: "Geist Mono", monospace; padding: 40px 0; font-size: 13px; }
+.topbar-actions { display: flex; gap: 8px; align-items: center; }
+.topbar-btn { background: none; border: none; color: var(--hero-ink-soft); font-family: "Geist Mono", monospace; font-size: 12px; cursor: pointer; padding: 2px 4px; transition: color 0.15s; }
+.topbar-btn:hover { color: var(--hero-bg); }
 </style>
 </head>
 <body>
 <div class="app-container">
   <header class="topbar">
     <span class="mark">/finance</span>
-    <nav style="color: var(--hero-ink-soft);">built like art</nav>
+    <div class="topbar-actions">
+      <button id="btn-export" class="topbar-btn" title="Export JSON backup">[backup]</button>
+      <label class="topbar-btn" style="cursor: pointer;" title="Import JSON backup">[restore]<input type="file" id="input-import" accept=".json" style="display: none;"></label>
+    </div>
   </header>
 
   <div class="tabs">
